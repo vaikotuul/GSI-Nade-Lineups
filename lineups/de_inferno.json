@@ -1,0 +1,96 @@
+{
+  "map": "de_inferno",
+  "lineups": [
+    {
+      "id": "inf-t-ct",
+      "side": "T",
+      "type": "smoke",
+      "title": "CT smoke",
+      "area": "B site",
+      "stand": "Banana, near the car",
+      "aim": "Reference point (to be recorded)",
+      "throw": "Jump-throw",
+      "priority": 3,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-t-coffins",
+      "side": "T",
+      "type": "smoke",
+      "title": "Coffins smoke",
+      "area": "B site",
+      "stand": "Banana, near the wall",
+      "aim": "Reference point (to be recorded)",
+      "throw": "Left click",
+      "priority": 3,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-t-pit",
+      "side": "T",
+      "type": "smoke",
+      "title": "Pit smoke",
+      "area": "A site",
+      "stand": "Apartments",
+      "aim": "Reference point (to be recorded)",
+      "throw": "Jump-throw",
+      "priority": 2,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-t-banana-molly",
+      "side": "T",
+      "type": "molotov",
+      "title": "Molotov car",
+      "area": "Banana",
+      "stand": "Bottom banana",
+      "aim": "Car position (to be recorded)",
+      "throw": "Left click",
+      "priority": 1,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-ct-banana-molly",
+      "side": "CT",
+      "type": "molotov",
+      "title": "Molotov banana",
+      "area": "Banana",
+      "stand": "B site, behind sandbags",
+      "aim": "Top banana (to be recorded)",
+      "throw": "Left click",
+      "priority": 3,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-ct-banana-smoke",
+      "side": "CT",
+      "type": "smoke",
+      "title": "Banana smoke",
+      "area": "Banana",
+      "stand": "B site entrance",
+      "aim": "Reference point (to be recorded)",
+      "throw": "Left click",
+      "priority": 2,
+      "image": null,
+      "verified": false
+    },
+    {
+      "id": "inf-ct-apps-flash",
+      "side": "CT",
+      "type": "flash",
+      "title": "Flash apartments",
+      "area": "A site",
+      "stand": "Pit side",
+      "aim": "Above the balcony",
+      "throw": "Left click",
+      "priority": 0,
+      "image": null,
+      "verified": false
+    }
+  ]
+}

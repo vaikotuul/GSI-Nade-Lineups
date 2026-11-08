@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nade Helper</title>
+<style>
+  :root {
+    --bg: #0f1114; --panel: #181b20; --line: #262a31; --text: #e8e6e1; --muted: #8b8f97;
+    --t: #d9a441; --ct: #5b9bd5; --ok: #6cc58a; --warn: #e07a5f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { position: sticky; top: 0; z-index: 2; background: var(--bg);
+           border-bottom: 1px solid var(--line); padding: 14px 16px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: .02em; }
+  .side { font-weight: 700; padding: 2px 10px; border-radius: 4px; font-size: 13px; }
+  .side.T { background: var(--t); color: #1a1405; }
+  .side.CT { background: var(--ct); color: #06121f; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); display: inline-block; }
+  .dot.on { background: var(--ok); }
+  .push { margin-left: auto; }
+  .banner { margin-top: 10px; padding: 6px 10px; border-radius: 4px; font-size: 13px;
+            background: #1f2a22; color: var(--ok); display: none; }
+  .banner.show { display: block; }
+  .filters { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); background: var(--panel); color: var(--text);
+          padding: 4px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+  .chip.active { border-color: var(--text); }
+  main { padding: 16px; max-width: 1100px; margin: 0 auto; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .card.dim { opacity: .5; }
+  .shot { aspect-ratio: 16/9; background: #111317; display: flex; align-items: center;
+          justify-content: center; color: var(--muted); font-size: 12px; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; }
+  .body { padding: 10px 12px 12px; }
+  .title { font-weight: 600; font-size: 16px; }
+  .tags { display: flex; gap: 6px; margin: 4px 0 8px; flex-wrap: wrap; }
+  .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+         border: 1px solid var(--line); padding: 1px 6px; border-radius: 3px; }
+  .tag.have { color: var(--ok); border-color: var(--ok); }
+  .tag.unverified { color: var(--warn); border-color: var(--warn); }
+  dl { margin: 0; display: grid; grid-template-columns: 52px 1fr; gap: 2px 8px; font-size: 13px; }
+  dt { color: var(--muted); }
+  dd { margin: 0; }
+  .empty { color: var(--muted); text-align: center; padding: 60px 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <h1 id="map">Waiting for CS2…</h1>
+    <span id="side" class="side" hidden></span>
+    <span id="phase" class="meta"></span>
+    <span class="push meta"><span id="dot" class="dot"></span> <span id="conn">offline</span></span>
+  </div>
+  <div id="banner" class="banner">Freeze time: pick your utility now</div>
+  <div class="filters" id="filters"></div>
+</header>
+<main>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty">Start a match in CS2 (or run simulate.py) and lineups will appear here.</div>
+</main>
+
+<script>
+const TYPES = ["all", "smoke", "flash", "molotov", "he"];
+let filter = "all";
+let last = null;
+
+const prettyMap = m => m ? m.replace(/^(de|cs|ar)_/, "").replace(/^\w/, c => c.toUpperCase()) : null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderFilters() {
+  const el = document.getElementById("filters");
+  el.innerHTML = TYPES.map(t =>
+    `<button class="chip ${t === filter ? "active" : ""}" data-t="${t}">${t}</button>`).join("");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => {
+    filter = b.dataset.t; renderFilters(); render();
+  });
+}
+
+function render() {
+  if (!last) return;
+  const { context: c, lineups } = last;
+
+  document.getElementById("map").textContent = prettyMap(c.map) || "Waiting for a match…";
+  const side = document.getElementById("side");
+  side.hidden = !c.side;
+  side.className = "side " + (c.side || "");
+  side.textContent = c.side || "";
+
+  const parts = [];
+  if (c.mode) parts.push(c.mode);
+  if (c.round != null && c.map) parts.push("round " + (c.round + 1));
+  if (c.round_phase) parts.push(c.round_phase);
+  if (c.is_local === false) parts.push("spectating teammate");
+  document.getElementById("phase").textContent = parts.join(" · ");
+
+  document.getElementById("banner").classList.toggle("show", c.round_phase === "freezetime");
+
+  const shown = lineups.filter(l => filter === "all" || l.type === filter);
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+
+  if (!c.map) { grid.innerHTML = ""; empty.textContent = "Start a match in CS2 and lineups will appear here."; empty.hidden = false; return; }
+  if (!c.map_supported) { grid.innerHTML = ""; empty.textContent = `No lineups for ${c.map} yet.`; empty.hidden = false; return; }
+  if (!shown.length) { grid.innerHTML = ""; empty.textContent = "No lineups match this filter."; empty.hidden = false; return; }
+  empty.hidden = true;
+
+  const hasAny = c.nades.length > 0;
+  grid.innerHTML = shown.map(l => `
+    <article class="card ${hasAny && !l.carried ? "dim" : ""}">
+      <div class="shot">${l.image ? `<img src="/media/${esc(l.image)}" alt="">` : "screenshot to be added"}</div>
+      <div class="body">
+        <div class="title">${esc(l.title)}</div>
+        <div class="tags">
+          <span class="tag">${esc(l.type)}</span>
+          <span class="tag">${esc(l.area)}</span>
+          ${l.carried ? '<span class="tag have">in inventory</span>' : ""}
+          ${l.verified ? "" : '<span class="tag unverified">unverified</span>'}
+        </div>
+        <dl>
+          <dt>Stand</dt><dd>${esc(l.stand)}</dd>
+          <dt>Aim</dt><dd>${esc(l.aim)}</dd>
+          <dt>Throw</dt><dd>${esc(l.throw)}</dd>
+        </dl>
+      </div>
+    </article>`).join("");
+}
+
+function connect() {
+  const es = new EventSource("/events");
+  es.onopen = () => { document.getElementById("dot").classList.add("on"); document.getElementById("conn").textContent = "connected"; };
+  es.onerror = () => { document.getElementById("dot").classList.remove("on"); document.getElementById("conn").textContent = "reconnecting"; };
+  es.onmessage = e => { last = JSON.parse(e.data); render(); };
+}
+
+renderFilters();
+connect();
+</script>
+</body>
+</html>

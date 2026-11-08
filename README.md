@@ -5,6 +5,8 @@ the current map, side, round phase and carried grenades through Valve's official
 Game State Integration (GSI); the app shows matching lineups in a browser page
 that updates live. No game memory is read and nothing is injected into the game.
 
+Currently using python - will consider using TypeScript later
+
 ```
  CS2 ──HTTP POST (GSI JSON)──▶ server.py ──Server-Sent Events──▶ browser (PC, 2nd monitor)
                                │
